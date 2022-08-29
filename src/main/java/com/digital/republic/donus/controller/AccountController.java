@@ -40,14 +40,17 @@ public class AccountController {
     public ResponseEntity transference(@RequestBody TransferenceDto transferenceDto){
         Optional<Account> account = accountRepository.findById(transferenceDto.getUserAccount());
         Optional<Account> accountDeposit = accountRepository.findById(transferenceDto.getDepositAccount());
-        if(account.get().getBalance() > transferenceDto.getValueDeposit()){
-            double newValue = account.get().getBalance() - transferenceDto.getValueDeposit();
-            account.get().setBalance(newValue);
-            accountDeposit.get().setBalance(transferenceDto.getValueDeposit());
-            accountRepository.save(account.get());
-            accountRepository.save(accountDeposit.get());
-            return ResponseEntity.status(201).body(transferenceDto);
+        if( account.isPresent() && accountDeposit.isPresent()){
+            if(account.get().getBalance() > transferenceDto.getValueDeposit()){
+                double newValue = account.get().getBalance() - transferenceDto.getValueDeposit();
+                account.get().setBalance(newValue);
+                accountDeposit.get().setBalance(transferenceDto.getValueDeposit());
+                accountRepository.save(account.get());
+                accountRepository.save(accountDeposit.get());
+                return ResponseEntity.status(201).body(transferenceDto);
+            }
+            return ResponseEntity.status(400).body("Saldo insuficiente para transferência");
         }
-        return ResponseEntity.status(400).body("Saldo insuficiente para transferência");
+        return ResponseEntity.status(401).body("Conta não existe informe uma conta válida");
     }
 }
